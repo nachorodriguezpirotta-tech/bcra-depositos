@@ -19,10 +19,12 @@ from googleapiclient.discovery import build as gbuild
 
 import generate
 import dashboard
+import render_png
 
 SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
 LOCAL_TOKEN = "/Users/ignaciorodriguezpirotta/Documents/Claude/asistente-revolv/token_mail.json"
 HTML_OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dashboard.html")
+PNG_OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dashboard.png")
 
 
 def get_creds():
@@ -74,6 +76,13 @@ def main():
                                      chart_src=dashboard.chart_data_uri(png))
     with open(HTML_OUT, "w", encoding="utf-8") as f:
         f.write(html_file)
+    # foto del dashboard (PNG) para adjuntar
+    try:
+        render_png.render(HTML_OUT, PNG_OUT)
+        png_ok = True
+    except Exception as e:
+        print(f"  [aviso] no se pudo renderizar PNG: {e}")
+        png_ok = False
 
     to = [x.strip() for x in os.environ.get("MAIL_TO", "nacho.rodriguezpirotta@gmail.com").split(",") if x.strip()]
     is_test = "--test" in sys.argv
@@ -96,9 +105,16 @@ def main():
     related.attach(img)
     root.attach(related)
 
-    with open(HTML_OUT, "rb") as f:
-        att = MIMEApplication(f.read(), _subtype="html")
-    att.add_header("Content-Disposition", "attachment", filename="dashboard_depositos_usd.html")
+    # adjunto: PNG (foto) si se pudo renderizar; si no, el HTML standalone
+    if png_ok:
+        with open(PNG_OUT, "rb") as f:
+            att = MIMEImage(f.read(), _subtype="png")
+        att.add_header("Content-Disposition", "attachment",
+                       filename=f"depositos_usd_{last_date:%Y%m%d}.png")
+    else:
+        with open(HTML_OUT, "rb") as f:
+            att = MIMEApplication(f.read(), _subtype="html")
+        att.add_header("Content-Disposition", "attachment", filename="dashboard_depositos_usd.html")
     root.attach(att)
 
     service = gbuild("gmail", "v1", credentials=get_creds(), cache_discovery=False)
