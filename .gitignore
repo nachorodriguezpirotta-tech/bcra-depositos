@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+# artefactos generados (se regeneran en cada corrida)
+diar_dep.xls
+*.xlsx
+dashboard.html
+_grafico.png
+preview_grafico.png
+mm.json
+# nunca commitear credenciales
+token*.json
+client_secret*.json
+.env
