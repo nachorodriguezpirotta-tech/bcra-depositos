@@ -12,3 +12,4 @@ mm.json
 token*.json
 client_secret*.json
 .env
+win_logo.png

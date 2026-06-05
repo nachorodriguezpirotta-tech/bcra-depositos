@@ -14,6 +14,17 @@ TXT = "#E8EDF5"; MUT = "#8A97AD"; LINE = "#26324A"
 FONT = "'Montserrat','Segoe UI',Arial,sans-serif"
 
 
+# Logo Win Securities recreado en vectorial (W de doble línea azul + wordmark),
+# sobre fondo dark del dashboard para que blende en el header.
+LOGO_SVG = """<svg xmlns="http://www.w3.org/2000/svg" width="408" height="100" viewBox="0 0 408 100">
+  <rect width="408" height="100" fill="#0B1220"/>
+  <polyline points="18,20 50,84 82,34 114,84 146,20" fill="none" stroke="#3F6FB5" stroke-width="15" stroke-linejoin="miter"/>
+  <polyline points="18,20 50,84 82,34 114,84 146,20" fill="none" stroke="#0B1220" stroke-width="5.5" stroke-linejoin="miter"/>
+  <text x="176" y="56" font-family="Montserrat,Arial,sans-serif" font-size="52" font-weight="800" fill="#FFFFFF">WIN</text>
+  <text x="178" y="85" font-family="Montserrat,Arial,sans-serif" font-size="21" font-weight="600" letter-spacing="6.5" fill="#8A97AD">SECURITIES</text>
+</svg>"""
+
+
 def _money(v):
     return f"{v:,.0f}".replace(",", ".")
 
@@ -32,7 +43,9 @@ def chart_data_uri(png_path):
         return "data:image/png;base64," + base64.b64encode(f.read()).decode("ascii")
 
 
-def build_html(last_date, last_val, table, mm, chart_src):
+def build_html(last_date, last_val, table, mm, chart_src, logo_src=None):
+    logo_img = (f'<img src="{logo_src}" height="44" style="display:block" alt="Win Securities">'
+                if logo_src else "")
     milei = next((r for r in table if r[0] == "Inicio Milei"), None)
     milei_pct = milei[4] if milei else 0
 
@@ -101,9 +114,14 @@ def build_html(last_date, last_val, table, mm, chart_src):
 
   <!-- Header -->
   <tr><td style="padding:0 8px 18px">
-    <div style="color:{MUT};font-size:12px;letter-spacing:2px;text-transform:uppercase">BCRA · Sector Privado</div>
-    <div style="color:{TXT};font-size:26px;font-weight:800;margin-top:4px">Depósitos en USD</div>
-    <div style="color:{MUT};font-size:13px;margin-top:2px">Serie diaria · millones de u$s · último dato {last_date:%d/%m/%Y}</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td valign="middle">
+        <div style="color:{MUT};font-size:12px;letter-spacing:2px;text-transform:uppercase">BCRA · Sector Privado</div>
+        <div style="color:{TXT};font-size:26px;font-weight:800;margin-top:4px">Depósitos en USD</div>
+        <div style="color:{MUT};font-size:13px;margin-top:2px">Serie diaria · millones de u$s · último dato {last_date:%d/%m/%Y}</div>
+      </td>
+      <td valign="middle" align="right">{logo_img}</td>
+    </tr></table>
   </td></tr>
 
   <!-- Hero -->

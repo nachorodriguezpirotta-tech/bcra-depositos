@@ -23,8 +23,15 @@ import render_png
 
 SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
 LOCAL_TOKEN = "/Users/ignaciorodriguezpirotta/Documents/Claude/asistente-revolv/token_mail.json"
-HTML_OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dashboard.html")
-PNG_OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dashboard.png")
+HERE = os.path.dirname(os.path.abspath(__file__))
+HTML_OUT = os.path.join(HERE, "dashboard.html")
+PNG_OUT = os.path.join(HERE, "dashboard.png")
+LOGO_OUT = os.path.join(HERE, "win_logo.png")
+
+
+def _data_uri(path):
+    with open(path, "rb") as f:
+        return "data:image/png;base64," + base64.b64encode(f.read()).decode("ascii")
 
 
 def get_creds():
@@ -68,12 +75,20 @@ def main():
     last_date, last_val, table = generate.build_table(data)
     mm = generate.fetch_mm_usd()
     png = generate.render_chart(data)
+    # logo Win (SVG -> PNG) para usar como imagen
+    try:
+        render_png.render_svg(dashboard.LOGO_SVG, LOGO_OUT)
+        logo_cid, logo_b64 = "cid:logo", _data_uri(LOGO_OUT)
+    except Exception as e:
+        print(f"  [aviso] no se pudo renderizar el logo: {e}")
+        logo_cid = logo_b64 = None
 
-    # cuerpo del mail: gráfico inline vía CID
-    html_mail = dashboard.build_html(last_date, last_val, table, mm, chart_src="cid:chart")
-    # adjunto standalone: gráfico embebido en base64 (autocontenido)
+    # cuerpo del mail: gráfico + logo inline vía CID
+    html_mail = dashboard.build_html(last_date, last_val, table, mm,
+                                     chart_src="cid:chart", logo_src=logo_cid)
+    # adjunto standalone: gráfico + logo embebidos en base64 (autocontenido)
     html_file = dashboard.build_html(last_date, last_val, table, mm,
-                                     chart_src=dashboard.chart_data_uri(png))
+                                     chart_src=dashboard.chart_data_uri(png), logo_src=logo_b64)
     with open(HTML_OUT, "w", encoding="utf-8") as f:
         f.write(html_file)
     # foto del dashboard (PNG) para adjuntar
@@ -103,6 +118,12 @@ def main():
     img.add_header("Content-ID", "<chart>")
     img.add_header("Content-Disposition", "inline", filename="grafico.png")
     related.attach(img)
+    if logo_cid and os.path.exists(LOGO_OUT):
+        with open(LOGO_OUT, "rb") as f:
+            limg = MIMEImage(f.read(), _subtype="png")
+        limg.add_header("Content-ID", "<logo>")
+        limg.add_header("Content-Disposition", "inline", filename="win_logo.png")
+        related.attach(limg)
     root.attach(related)
 
     # adjunto: PNG (foto) si se pudo renderizar; si no, el HTML standalone

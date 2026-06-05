@@ -20,5 +20,18 @@ def render(html_path=None, out_png=None, width=760):
     return out_png
 
 
+def render_svg(svg, out_png, width=360, height=100):
+    """Rasteriza un SVG a PNG con Chromium (para usar como <img> en mail/standalone)."""
+    html = f'<!doctype html><body style="margin:0">{svg}</body>'
+    with sync_playwright() as p:
+        b = p.chromium.launch()
+        pg = b.new_page(viewport={"width": width, "height": height}, device_scale_factor=2)
+        pg.set_content(html)
+        pg.wait_for_timeout(150)
+        pg.locator("svg").screenshot(path=out_png)
+        b.close()
+    return out_png
+
+
 if __name__ == "__main__":
     render(*(sys.argv[1:3] if len(sys.argv) > 1 else []))
