@@ -52,22 +52,72 @@ def download():
     print(f"  -> {SRC} ({os.path.getsize(SRC)/1e6:.0f} MB)")
 
 
-MM_URL = "https://api.argentinadatos.com/v1/finanzas/fci/mercadoDinero/ultimo"
-MM_RE = re.compile(r"d[oó]lar|dolar|usd|u\$s", re.I)
+# Money Market USD — FUENTE OFICIAL: CAFCI (planilla diaria).
+# Gonzalo: sumar la columna P (índice 15) de la sección "Mercado de Dinero Dolar
+# Estadounidense" (en la planilla son las filas ~P3960:P4096). Acá se hace robusto:
+# se ubica el header de la sección y se suma hasta el próximo header.
+CAFCI_URL = "https://api.pub.cafci.org.ar/pb_get"
+CAFCI_SRC = "/tmp/cafci.xlsx"
+MM_SECTION = "Mercado de Dinero Dolar Estadounidense"
+MM_COL = 15  # columna P
+# Fallback (si CAFCI no responde): argentinadatos
+MM_FALLBACK_URL = "https://api.argentinadatos.com/v1/finanzas/fci/mercadoDinero/ultimo"
+MM_FALLBACK_RE = re.compile(r"d[oó]lar|dolar|usd|u\$s", re.I)
+
+
+def _fmt_fecha(f):
+    if isinstance(f, str):
+        p = f.split("/")
+        if len(p) == 3 and len(p[2]) == 2:
+            return f"{p[0]}/{p[1]}/20{p[2]}"
+        return f
+    try:
+        return f.strftime("%d/%m/%Y")
+    except Exception:
+        return str(f) if f else ""
 
 
 def fetch_mm_usd():
-    """Patrimonio total de fondos Money Market en USD (millones de u$s).
-    Fuente: argentinadatos (CAFCI). Devuelve (fecha:str, total_millones:float) o None si falla.
-    El patrimonio de los fondos en dólares viene expresado en USD."""
+    """Patrimonio total de FCI Money Market en USD (millones de u$s).
+    Fuente oficial CAFCI; fallback argentinadatos. Devuelve (fecha, total_millones) o None."""
+    # 1) CAFCI oficial
     try:
-        req = urllib.request.Request(MM_URL, headers={"User-Agent": "Mozilla/5.0"})
+        req = urllib.request.Request(CAFCI_URL, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=90) as r, open(CAFCI_SRC, "wb") as f:
+            f.write(r.read())
+        wb = openpyxl.load_workbook(CAFCI_SRC, data_only=True, read_only=True)
+        ws = wb[wb.sheetnames[0]]
+        rows = list(ws.iter_rows(values_only=True))
+        wb.close()
+        start = next((i + 1 for i, row in enumerate(rows)
+                      if isinstance(row[0], str) and row[0].strip() == MM_SECTION), None)
+        if start is None:
+            raise ValueError("sección MM USD no encontrada en planilla CAFCI")
+        total = 0.0
+        fecha = None
+        for row in rows[start:]:
+            a = row[0]
+            if not (isinstance(a, str) and a.strip()):
+                continue
+            if "clase" not in a.lower():
+                break  # arrancó la próxima sección
+            v = row[MM_COL]
+            if isinstance(v, (int, float)):
+                total += v
+            if fecha is None:
+                fecha = row[4]  # col E = Fecha
+        return _fmt_fecha(fecha), total / 1e6
+    except Exception as e:
+        print(f"  [aviso] CAFCI falló ({e}); uso argentinadatos como respaldo")
+    # 2) fallback argentinadatos
+    try:
+        req = urllib.request.Request(MM_FALLBACK_URL, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=30) as r:
             data = json.load(r)
-        usd = [f for f in data if MM_RE.search(f.get("fondo", ""))]
+        usd = [f for f in data if MM_FALLBACK_RE.search(f.get("fondo", ""))]
         total = sum((f.get("patrimonio") or 0) for f in usd)
-        fecha = usd[0].get("fecha") if usd else (data[0].get("fecha") if data else "")
-        return fecha, total / 1e6  # a millones de u$s
+        fecha = usd[0].get("fecha") if usd else ""
+        return _fmt_fecha(fecha), total / 1e6
     except Exception as e:
         print(f"  [aviso] no se pudo obtener Money Market USD: {e}")
         return None
@@ -121,18 +171,19 @@ def render_chart(data):
     s = [(d, v) for d, v in data if d >= MILEI]
     xs = [d for d, v in s]
     ys = [v for d, v in s]
-    fig, ax = plt.subplots(figsize=(11, 4.5), dpi=120)
-    ax.plot(xs, ys, color="#1F4E78", lw=2)
+    fig, ax = plt.subplots(figsize=(11, 5), dpi=140)
+    ax.plot(xs, ys, color="#1F4E78", lw=2.6)
     ax.fill_between(xs, ys, min(ys), color="#1F4E78", alpha=0.08)
     ax.set_title("Depósitos en USD del Sector Privado — BCRA\n(desde la asunción de Milei, 10/12/2023)",
-                 fontsize=12, weight="bold")
-    ax.set_ylabel("Millones de u$s")
+                 fontsize=16, weight="bold")
+    ax.set_ylabel("Millones de u$s", fontsize=14)
+    ax.tick_params(labelsize=13)
     ax.grid(alpha=0.25)
     ax.xaxis.set_major_locator(mdates.MonthLocator(interval=3))
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%m/%y"))
     last = s[-1]
-    ax.annotate(f"{last[1]:,.0f}", xy=last, xytext=(0, 8), textcoords="offset points",
-                weight="bold", color="#1F4E78")
+    ax.annotate(f"{last[1]:,.0f}", xy=last, xytext=(0, 10), textcoords="offset points",
+                weight="bold", color="#1F4E78", fontsize=15)
     fig.tight_layout()
     fig.savefig(CHART_PNG)
     plt.close(fig)
