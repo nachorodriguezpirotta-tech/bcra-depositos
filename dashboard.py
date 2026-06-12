@@ -8,20 +8,24 @@ como archivo standalone). El gráfico se pasa como `chart_src`:
 """
 import base64
 
+# Paleta oficial Win Securities (Manual de Marca ene-2022):
+# AZUL #2E5C9D · GRIS #404041 · CELESTE #4489EB · OCRE #976828 · MOSTAZA #E69C3C
+# Tipografía oficial: Scania Sans (fallback web a sans similares).
+AZUL = "#2E5C9D"; CELESTE = "#4489EB"; MOSTAZA = "#E69C3C"
 BG = "#0B1220"; CARD = "#151E32"; CARD2 = "#1C2740"
-BLUE = "#5B9BD5"; GREEN = "#2ECC71"; RED = "#E74C3C"
+BLUE = CELESTE; GREEN = "#2ECC71"; RED = "#E74C3C"
 TXT = "#E8EDF5"; MUT = "#8A97AD"; LINE = "#26324A"
-FONT = "'Montserrat','Segoe UI',Arial,sans-serif"
+FONT = "'Scania Sans','Scania Sans CY','Montserrat','Segoe UI',Arial,sans-serif"
 
 
 # Logo Win Securities recreado en vectorial (W de doble línea azul + wordmark),
 # sobre fondo dark del dashboard para que blende en el header.
 LOGO_SVG = """<svg xmlns="http://www.w3.org/2000/svg" width="408" height="100" viewBox="0 0 408 100">
   <rect width="408" height="100" fill="#0B1220"/>
-  <polyline points="18,20 50,84 82,34 114,84 146,20" fill="none" stroke="#3F6FB5" stroke-width="15" stroke-linejoin="miter"/>
+  <polyline points="18,20 50,84 82,34 114,84 146,20" fill="none" stroke="#2E5C9D" stroke-width="15" stroke-linejoin="miter"/>
   <polyline points="18,20 50,84 82,34 114,84 146,20" fill="none" stroke="#0B1220" stroke-width="5.5" stroke-linejoin="miter"/>
-  <text x="176" y="56" font-family="Montserrat,Arial,sans-serif" font-size="52" font-weight="800" fill="#FFFFFF">WIN</text>
-  <text x="178" y="85" font-family="Montserrat,Arial,sans-serif" font-size="21" font-weight="600" letter-spacing="6.5" fill="#8A97AD">SECURITIES</text>
+  <text x="176" y="56" font-family="'Scania Sans',Montserrat,Arial,sans-serif" font-size="52" font-weight="800" fill="#FFFFFF">WIN</text>
+  <text x="178" y="85" font-family="'Scania Sans',Montserrat,Arial,sans-serif" font-size="21" font-weight="600" letter-spacing="6.5" fill="#8A97AD">SECURITIES</text>
 </svg>"""
 
 
@@ -55,21 +59,21 @@ def build_html(last_date, last_val, table, mm, chart_src, logo_src=None):
         if label == "Último":
             rows.append(f"""
             <tr>
-              <td style="padding:14px 16px;border-bottom:1px solid {LINE};color:{TXT};font-weight:700;font-size:19px">{label}</td>
-              <td style="padding:14px 16px;border-bottom:1px solid {LINE};color:{MUT};font-size:16px">{d:%d/%m/%Y}</td>
-              <td style="padding:14px 16px;border-bottom:1px solid {LINE};color:{TXT};font-weight:700;text-align:right;font-size:19px">{_money(v)}</td>
-              <td style="padding:14px 16px;border-bottom:1px solid {LINE};color:{MUT};text-align:right;font-size:18px">—</td>
-              <td style="padding:14px 16px;border-bottom:1px solid {LINE};color:{MUT};text-align:right;font-size:18px">—</td>
+              <td style="padding:14px 16px;border-bottom:1px solid {LINE};color:{TXT};font-weight:700;font-size:22px">{label}</td>
+              <td style="padding:14px 16px;border-bottom:1px solid {LINE};color:{MUT};font-size:18px">{d:%d/%m/%Y}</td>
+              <td style="padding:14px 16px;border-bottom:1px solid {LINE};color:{TXT};font-weight:700;text-align:right;font-size:22px">{_money(v)}</td>
+              <td style="padding:14px 16px;border-bottom:1px solid {LINE};color:{MUT};text-align:right;font-size:20px">—</td>
+              <td style="padding:14px 16px;border-bottom:1px solid {LINE};color:{MUT};text-align:right;font-size:20px">—</td>
             </tr>""")
         else:
             col = GREEN if delta >= 0 else RED
             rows.append(f"""
             <tr>
-              <td style="padding:14px 16px;border-bottom:1px solid {LINE};color:{TXT};font-size:19px">{label}</td>
-              <td style="padding:14px 16px;border-bottom:1px solid {LINE};color:{MUT};font-size:16px">{d:%d/%m/%Y}</td>
-              <td style="padding:14px 16px;border-bottom:1px solid {LINE};color:{TXT};text-align:right;font-size:19px">{_money(v)}</td>
-              <td style="padding:14px 16px;border-bottom:1px solid {LINE};color:{col};text-align:right;font-size:18px">{_delta(delta)}</td>
-              <td style="padding:14px 16px;border-bottom:1px solid {LINE};color:{col};text-align:right;font-weight:700;font-size:19px">{_pct(pct)}</td>
+              <td style="padding:14px 16px;border-bottom:1px solid {LINE};color:{TXT};font-size:22px">{label}</td>
+              <td style="padding:14px 16px;border-bottom:1px solid {LINE};color:{MUT};font-size:18px">{d:%d/%m/%Y}</td>
+              <td style="padding:14px 16px;border-bottom:1px solid {LINE};color:{TXT};text-align:right;font-size:22px">{_money(v)}</td>
+              <td style="padding:14px 16px;border-bottom:1px solid {LINE};color:{col};text-align:right;font-size:20px">{_delta(delta)}</td>
+              <td style="padding:14px 16px;border-bottom:1px solid {LINE};color:{col};text-align:right;font-weight:700;font-size:22px">{_pct(pct)}</td>
             </tr>""")
     rows_html = "".join(rows)
 
@@ -82,25 +86,25 @@ def build_html(last_date, last_val, table, mm, chart_src, logo_src=None):
           <tr>
             <td width="33%" style="padding:6px">
               <div style="background:{CARD2};border:1px solid {LINE};border-radius:12px;padding:18px">
-                <div style="color:{MUT};font-size:14px;text-transform:uppercase;letter-spacing:.5px">Depósitos USD</div>
-                <div style="color:{TXT};font-size:30px;font-weight:700;margin-top:5px">{_money(last_val)}</div>
+                <div style="color:{MUT};font-size:16px;text-transform:uppercase;letter-spacing:.5px">Depósitos USD</div>
+                <div style="color:{TXT};font-size:34px;font-weight:700;margin-top:6px">{_money(last_val)}</div>
               </div>
             </td>
             <td width="33%" style="padding:6px">
               <div style="background:{CARD2};border:1px solid {LINE};border-radius:12px;padding:18px">
-                <div style="color:{MUT};font-size:14px;text-transform:uppercase;letter-spacing:.5px">Money Market USD</div>
-                <div style="color:{TXT};font-size:30px;font-weight:700;margin-top:5px">{_money(mm_total)}</div>
+                <div style="color:{MUT};font-size:16px;text-transform:uppercase;letter-spacing:.5px">Money Market USD</div>
+                <div style="color:{TXT};font-size:34px;font-weight:700;margin-top:6px">{_money(mm_total)}</div>
               </div>
             </td>
             <td width="33%" style="padding:6px">
-              <div style="background:linear-gradient(135deg,#1B3A5C,#15233B);border:1px solid {BLUE};border-radius:12px;padding:18px">
-                <div style="color:{BLUE};font-size:14px;text-transform:uppercase;letter-spacing:.5px">Liquidez USD total</div>
-                <div style="color:#fff;font-size:30px;font-weight:700;margin-top:5px">{_money(total_liq)}</div>
+              <div style="background:linear-gradient(135deg,{AZUL},#15233B);border:1px solid {CELESTE};border-radius:12px;padding:18px">
+                <div style="color:#BBD4F5;font-size:16px;text-transform:uppercase;letter-spacing:.5px">Liquidez USD total</div>
+                <div style="color:#fff;font-size:34px;font-weight:700;margin-top:6px">{_money(total_liq)}</div>
               </div>
             </td>
           </tr>
         </table>
-        <div style="color:{MUT};font-size:13px;margin-top:8px">Money Market USD al {mm_fecha} · Fuente: CAFCI (FCI Mercado de Dinero en dólares).</div>
+        <div style="color:{MUT};font-size:15px;margin-top:8px">Money Market USD al {mm_fecha} · Fuente: CAFCI (FCI Mercado de Dinero en dólares).</div>
         """
     else:
         mm_html = f'<div style="color:{MUT};font-size:12px">Money Market USD: no disponible en esta corrida.</div>'
@@ -116,9 +120,9 @@ def build_html(last_date, last_val, table, mm, chart_src, logo_src=None):
   <tr><td style="padding:0 8px 18px">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
       <td valign="middle">
-        <div style="color:{MUT};font-size:15px;letter-spacing:2px;text-transform:uppercase">BCRA · Sector Privado</div>
-        <div style="color:{TXT};font-size:36px;font-weight:800;margin-top:5px">Depósitos en USD</div>
-        <div style="color:{MUT};font-size:17px;margin-top:3px">Serie diaria · millones de u$s · último dato {last_date:%d/%m/%Y}</div>
+        <div style="color:{CELESTE};font-size:17px;letter-spacing:2px;text-transform:uppercase;font-weight:600">BCRA · Sector Privado</div>
+        <div style="color:{TXT};font-size:42px;font-weight:800;margin-top:5px">Depósitos en USD</div>
+        <div style="color:{MUT};font-size:19px;margin-top:4px">Serie diaria · millones de u$s · último dato {last_date:%d/%m/%Y}</div>
       </td>
       <td valign="middle" align="right">{logo_img}</td>
     </tr></table>
@@ -129,11 +133,11 @@ def build_html(last_date, last_val, table, mm, chart_src, logo_src=None):
     <div style="background:{CARD};border:1px solid {LINE};border-radius:16px;padding:22px 24px">
       <table role="presentation" width="100%"><tr>
         <td>
-          <div style="color:{MUT};font-size:15px;text-transform:uppercase;letter-spacing:.5px">Nivel actual</div>
-          <div style="color:#fff;font-size:62px;font-weight:800;line-height:1.1;margin-top:6px">{_money(last_val)}<span style="font-size:22px;color:{MUT};font-weight:600"> M u$s</span></div>
+          <div style="color:{MUT};font-size:17px;text-transform:uppercase;letter-spacing:.5px">Nivel actual</div>
+          <div style="color:#fff;font-size:70px;font-weight:800;line-height:1.1;margin-top:6px">{_money(last_val)}<span style="font-size:25px;color:{MUT};font-weight:600"> M u$s</span></div>
         </td>
         <td align="right" valign="top">
-          <span style="display:inline-block;background:rgba(46,204,113,.15);color:{GREEN};font-weight:700;font-size:19px;padding:10px 18px;border-radius:999px">▲ {_pct(milei_pct)} desde Milei</span>
+          <span style="display:inline-block;background:rgba(46,204,113,.15);color:{GREEN};font-weight:700;font-size:21px;padding:11px 20px;border-radius:999px">▲ {_pct(milei_pct)} desde Milei</span>
         </td>
       </tr></table>
     </div>
@@ -149,14 +153,14 @@ def build_html(last_date, last_val, table, mm, chart_src, logo_src=None):
   <!-- Tabla comparativa -->
   <tr><td style="padding:8px">
     <div style="background:{CARD};border:1px solid {LINE};border-radius:16px;padding:6px 8px 10px">
-      <div style="color:{TXT};font-size:20px;font-weight:700;padding:14px 16px 10px">Comparativo</div>
+      <div style="color:{TXT};font-size:23px;font-weight:700;padding:14px 16px 10px">Comparativo</div>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
         <tr>
-          <th style="text-align:left;padding:10px 16px;color:{MUT};font-size:14px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid {LINE}">Período</th>
-          <th style="text-align:left;padding:10px 16px;color:{MUT};font-size:14px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid {LINE}">Fecha</th>
-          <th style="text-align:right;padding:10px 16px;color:{MUT};font-size:14px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid {LINE}">Nivel</th>
-          <th style="text-align:right;padding:10px 16px;color:{MUT};font-size:14px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid {LINE}">Δ u$s</th>
-          <th style="text-align:right;padding:10px 16px;color:{MUT};font-size:14px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid {LINE}">Δ %</th>
+          <th style="text-align:left;padding:10px 16px;color:{MUT};font-size:16px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid {LINE}">Período</th>
+          <th style="text-align:left;padding:10px 16px;color:{MUT};font-size:16px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid {LINE}">Fecha</th>
+          <th style="text-align:right;padding:10px 16px;color:{MUT};font-size:16px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid {LINE}">Nivel</th>
+          <th style="text-align:right;padding:10px 16px;color:{MUT};font-size:16px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid {LINE}">Δ u$s</th>
+          <th style="text-align:right;padding:10px 16px;color:{MUT};font-size:16px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid {LINE}">Δ %</th>
         </tr>
         {rows_html}
       </table>
@@ -166,14 +170,14 @@ def build_html(last_date, last_val, table, mm, chart_src, logo_src=None):
   <!-- Money Market -->
   <tr><td style="padding:8px">
     <div style="background:{CARD};border:1px solid {LINE};border-radius:16px;padding:16px">
-      <div style="color:{TXT};font-size:20px;font-weight:700;margin-bottom:6px">Liquidez en dólares</div>
+      <div style="color:{TXT};font-size:23px;font-weight:700;margin-bottom:6px">Liquidez en dólares</div>
       {mm_html}
     </div>
   </td></tr>
 
   <!-- Footer -->
   <tr><td style="padding:16px 16px 4px">
-    <div style="color:{MUT};font-size:13px;line-height:1.6">
+    <div style="color:{MUT};font-size:15px;line-height:1.6">
       Fuente: BCRA y CAFCI.<br>
       Reporte automático semanal · generado {last_date:%d/%m/%Y}.
     </div>
