@@ -172,8 +172,8 @@ def render_chart(data):
     xs = [d for d, v in s]
     ys = [v for d, v in s]
     fig, ax = plt.subplots(figsize=(11, 5), dpi=140)
-    ax.plot(xs, ys, color="#2E5C9D", lw=2.6)
-    ax.fill_between(xs, ys, min(ys), color="#2E5C9D", alpha=0.08)
+    ax.plot(xs, ys, color="#4489EB", lw=2.6)
+    ax.fill_between(xs, ys, min(ys), color="#4489EB", alpha=0.08)
     ax.set_title("Depósitos en USD del Sector Privado — BCRA\n(desde la asunción de Milei, 10/12/2023)",
                  fontsize=16, weight="bold")
     ax.set_ylabel("Millones de u$s", fontsize=14)
@@ -183,7 +183,7 @@ def render_chart(data):
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%m/%y"))
     last = s[-1]
     ax.annotate(f"{last[1]:,.0f}", xy=last, xytext=(0, 10), textcoords="offset points",
-                weight="bold", color="#2E5C9D", fontsize=15)
+                weight="bold", color="#4489EB", fontsize=15)
     fig.tight_layout()
     fig.savefig(CHART_PNG)
     plt.close(fig)

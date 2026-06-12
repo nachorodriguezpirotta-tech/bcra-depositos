@@ -22,7 +22,7 @@ FONT = "'Scania Sans','Scania Sans CY','Montserrat','Segoe UI',Arial,sans-serif"
 # sobre fondo dark del dashboard para que blende en el header.
 LOGO_SVG = """<svg xmlns="http://www.w3.org/2000/svg" width="408" height="100" viewBox="0 0 408 100">
   <rect width="408" height="100" fill="#0B1220"/>
-  <polyline points="18,20 50,84 82,34 114,84 146,20" fill="none" stroke="#2E5C9D" stroke-width="15" stroke-linejoin="miter"/>
+  <polyline points="18,20 50,84 82,34 114,84 146,20" fill="none" stroke="#4489EB" stroke-width="15" stroke-linejoin="miter"/>
   <polyline points="18,20 50,84 82,34 114,84 146,20" fill="none" stroke="#0B1220" stroke-width="5.5" stroke-linejoin="miter"/>
   <text x="176" y="56" font-family="'Scania Sans',Montserrat,Arial,sans-serif" font-size="52" font-weight="800" fill="#FFFFFF">WIN</text>
   <text x="178" y="85" font-family="'Scania Sans',Montserrat,Arial,sans-serif" font-size="21" font-weight="600" letter-spacing="6.5" fill="#8A97AD">SECURITIES</text>
@@ -97,7 +97,7 @@ def build_html(last_date, last_val, table, mm, chart_src, logo_src=None):
               </div>
             </td>
             <td width="33%" style="padding:6px">
-              <div style="background:linear-gradient(135deg,{AZUL},#15233B);border:1px solid {CELESTE};border-radius:12px;padding:18px">
+              <div style="background:linear-gradient(135deg,#2F66C4,#173258);border:1px solid {CELESTE};border-radius:12px;padding:18px">
                 <div style="color:#BBD4F5;font-size:16px;text-transform:uppercase;letter-spacing:.5px">Liquidez USD total</div>
                 <div style="color:#fff;font-size:34px;font-weight:700;margin-top:6px">{_money(total_liq)}</div>
               </div>
