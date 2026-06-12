@@ -12,20 +12,20 @@ import base64
 # AZUL #2E5C9D · GRIS #404041 · CELESTE #4489EB · OCRE #976828 · MOSTAZA #E69C3C
 # Tipografía oficial: Scania Sans (fallback web a sans similares).
 AZUL = "#2E5C9D"; CELESTE = "#4489EB"; MOSTAZA = "#E69C3C"
-BG = "#0B1220"; CARD = "#151E32"; CARD2 = "#1C2740"
-BLUE = CELESTE; GREEN = "#2ECC71"; RED = "#E74C3C"
-TXT = "#E8EDF5"; MUT = "#8A97AD"; LINE = "#26324A"
+BG = "#3567AE"; CARD = "#2C589B"; CARD2 = "#274F8C"
+BLUE = CELESTE; GREEN = "#5BEFA3"; RED = "#FFA194"
+TXT = "#FFFFFF"; MUT = "#C7D9F2"; LINE = "#4F7BBE"
 FONT = "'Scania Sans','Scania Sans CY','Montserrat','Segoe UI',Arial,sans-serif"
 
 
 # Logo Win Securities recreado en vectorial (W de doble línea azul + wordmark),
 # sobre fondo dark del dashboard para que blende en el header.
 LOGO_SVG = """<svg xmlns="http://www.w3.org/2000/svg" width="408" height="100" viewBox="0 0 408 100">
-  <rect width="408" height="100" fill="#0B1220"/>
+  <rect width="408" height="100" fill="#3567AE"/>
   <polyline points="18,20 50,84 82,34 114,84 146,20" fill="none" stroke="#4489EB" stroke-width="15" stroke-linejoin="miter"/>
-  <polyline points="18,20 50,84 82,34 114,84 146,20" fill="none" stroke="#0B1220" stroke-width="5.5" stroke-linejoin="miter"/>
+  <polyline points="18,20 50,84 82,34 114,84 146,20" fill="none" stroke="#3567AE" stroke-width="5.5" stroke-linejoin="miter"/>
   <text x="176" y="56" font-family="'Scania Sans',Montserrat,Arial,sans-serif" font-size="52" font-weight="800" fill="#FFFFFF">WIN</text>
-  <text x="178" y="85" font-family="'Scania Sans',Montserrat,Arial,sans-serif" font-size="21" font-weight="600" letter-spacing="6.5" fill="#8A97AD">SECURITIES</text>
+  <text x="178" y="85" font-family="'Scania Sans',Montserrat,Arial,sans-serif" font-size="21" font-weight="600" letter-spacing="6.5" fill="#D7E5F8">SECURITIES</text>
 </svg>"""
 
 
@@ -97,9 +97,9 @@ def build_html(last_date, last_val, table, mm, chart_src, logo_src=None):
               </div>
             </td>
             <td width="33%" style="padding:6px">
-              <div style="background:linear-gradient(135deg,#2F66C4,#173258);border:1px solid {CELESTE};border-radius:12px;padding:18px">
-                <div style="color:#BBD4F5;font-size:16px;text-transform:uppercase;letter-spacing:.5px">Liquidez USD total</div>
-                <div style="color:#fff;font-size:34px;font-weight:700;margin-top:6px">{_money(total_liq)}</div>
+              <div style="background:#FFFFFF;border:1px solid #FFFFFF;border-radius:12px;padding:18px">
+                <div style="color:{AZUL};font-size:16px;text-transform:uppercase;letter-spacing:.5px;font-weight:700">Liquidez USD total</div>
+                <div style="color:#1C355C;font-size:34px;font-weight:700;margin-top:6px">{_money(total_liq)}</div>
               </div>
             </td>
           </tr>
@@ -120,7 +120,7 @@ def build_html(last_date, last_val, table, mm, chart_src, logo_src=None):
   <tr><td style="padding:0 8px 18px">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
       <td valign="middle">
-        <div style="color:{CELESTE};font-size:17px;letter-spacing:2px;text-transform:uppercase;font-weight:600">BCRA · Sector Privado</div>
+        <div style="color:#D7E5F8;font-size:17px;letter-spacing:2px;text-transform:uppercase;font-weight:600">BCRA · Sector Privado</div>
         <div style="color:{TXT};font-size:42px;font-weight:800;margin-top:5px">Depósitos en USD</div>
         <div style="color:{MUT};font-size:19px;margin-top:4px">Serie diaria · millones de u$s · último dato {last_date:%d/%m/%Y}</div>
       </td>
@@ -137,7 +137,7 @@ def build_html(last_date, last_val, table, mm, chart_src, logo_src=None):
           <div style="color:#fff;font-size:70px;font-weight:800;line-height:1.1;margin-top:6px">{_money(last_val)}<span style="font-size:25px;color:{MUT};font-weight:600"> M u$s</span></div>
         </td>
         <td align="right" valign="top">
-          <span style="display:inline-block;background:rgba(46,204,113,.15);color:{GREEN};font-weight:700;font-size:21px;padding:11px 20px;border-radius:999px">▲ {_pct(milei_pct)} desde Milei</span>
+          <span style="display:inline-block;background:rgba(255,255,255,.16);color:{GREEN};font-weight:700;font-size:21px;padding:11px 20px;border-radius:999px">▲ {_pct(milei_pct)} desde Milei</span>
         </td>
       </tr></table>
     </div>
