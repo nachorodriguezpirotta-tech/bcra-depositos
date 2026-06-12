@@ -2,21 +2,69 @@ name: bcra-depositos-usd
 
 on:
   schedule:
-    # Lunes 13:00 ART (16:00 UTC).
-    - cron: "0 16 * * 1"
+    # Objetivo: mail puntual 13:00 ART (16:00 UTC) los lunes.
+    # El cron de GHA arranca tarde cuando hay congestión (el 08/06 arrancó 2h17
+    # tarde), así que se disparan 3 intentos tempranos y cada uno ESPERA hasta
+    # las 15:57 UTC antes de enviar. El guard evita duplicados: si un intento
+    # ya envió hoy, los demás se saltan.
+    - cron: "7 14 * * 1"
+    - cron: "7 15 * * 1"
+    - cron: "47 15 * * 1"
   workflow_dispatch: {}
+
+concurrency:
+  group: bcra-depositos-weekly
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
 
 jobs:
   enviar:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Saltar si otro intento ya envió hoy
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          hoy=$(date -u +%Y-%m-%d)
+          n=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/bcra-depositos.yml/runs?event=schedule&status=success&created=${hoy}..${hoy}" --jq '.workflow_runs | length')
+          echo "Envíos exitosos del cron hoy: $n"
+          if [ "$n" -gt 0 ]; then
+            echo "Ya se envió hoy — este intento se salta."
+            echo "SKIP=1" >> "$GITHUB_ENV"
+          fi
+
       - uses: actions/setup-python@v5
+        if: env.SKIP != '1'
         with:
           python-version: "3.12"
-      - run: pip install -r requirements.txt
-      - run: python -m playwright install --with-deps chromium
+
+      - if: env.SKIP != '1'
+        run: pip install -r requirements.txt
+
+      - if: env.SKIP != '1'
+        run: python -m playwright install --with-deps chromium
+
+      # Todo el setup ya está listo; recién acá se espera al horario exacto.
+      - name: Esperar hasta las 15:57 UTC (12:57 ART) para salida puntual
+        if: env.SKIP != '1' && github.event_name == 'schedule'
+        run: |
+          target=$(date -u -d "today 15:57" +%s)
+          now=$(date -u +%s)
+          if [ "$now" -lt "$target" ]; then
+            echo "Esperando $((target - now))s hasta las 15:57 UTC..."
+            sleep $((target - now))
+          else
+            echo "Ya pasó el horario objetivo — envío inmediato."
+          fi
+
       - name: Generar dashboard y enviar mail
+        if: env.SKIP != '1'
         env:
           MAIL_OAUTH_REFRESH_TOKEN: ${{ secrets.MAIL_OAUTH_REFRESH_TOKEN }}
           MAIL_OAUTH_CLIENT_ID: ${{ secrets.MAIL_OAUTH_CLIENT_ID }}
