@@ -44,12 +44,29 @@ LOOKBACKS = [
 ]
 
 
-def download():
-    print(f"Descargando {URL} ...")
-    req = urllib.request.Request(URL, headers={"User-Agent": "Mozilla/5.0"})
-    with urllib.request.urlopen(req, timeout=180) as r, open(SRC, "wb") as f:
-        f.write(r.read())
-    print(f"  -> {SRC} ({os.path.getsize(SRC)/1e6:.0f} MB)")
+def download(attempts=4):
+    """Descarga el .xls del BCRA (122MB) con reintentos y lectura en chunks
+    (el server a veces corta la conexión -> IncompleteRead)."""
+    import time, shutil
+    last = None
+    for i in range(1, attempts + 1):
+        try:
+            print(f"Descargando {URL} (intento {i}/{attempts}) ...")
+            req = urllib.request.Request(URL, headers={"User-Agent": "Mozilla/5.0"})
+            tmp = SRC + ".part"
+            with urllib.request.urlopen(req, timeout=300) as r, open(tmp, "wb") as f:
+                shutil.copyfileobj(r, f, length=1 << 20)
+            size = os.path.getsize(tmp)
+            if size < 50_000_000:  # el archivo real ronda 122MB; algo chico = descarga cortada
+                raise IOError(f"archivo incompleto ({size/1e6:.0f} MB)")
+            os.replace(tmp, SRC)
+            print(f"  -> {SRC} ({size/1e6:.0f} MB)")
+            return
+        except Exception as e:
+            last = e
+            print(f"  [aviso] descarga falló: {e}")
+            time.sleep(5 * i)
+    raise RuntimeError(f"No se pudo bajar el archivo del BCRA tras {attempts} intentos: {last}")
 
 
 # Money Market USD — FUENTE OFICIAL: CAFCI (planilla diaria).

@@ -5,7 +5,7 @@ Credenciales Gmail (cuenta asistente.revolv@gmail.com), por orden de preferencia
   1) env  MAIL_OAUTH_REFRESH_TOKEN + MAIL_OAUTH_CLIENT_ID + MAIL_OAUTH_CLIENT_SECRET   (GitHub Actions)
   2) archivo token_mail.json local (de asistente-revolv)                               (local)
 
-Destinatarios: env MAIL_TO (coma) ; default nacho.rodriguezpirotta@gmail.com
+Destinatarios: env MAIL_TO (coma)
 """
 import os, sys, base64, datetime as dt
 from email.mime.multipart import MIMEMultipart
@@ -99,7 +99,9 @@ def main():
         print(f"  [aviso] no se pudo renderizar PNG: {e}")
         png_ok = False
 
-    to = [x.strip() for x in os.environ.get("MAIL_TO", "nacho.rodriguezpirotta@gmail.com").split(",") if x.strip()]
+    to = [x.strip() for x in os.environ.get("MAIL_TO", "").split(",") if x.strip()]
+    if not to:
+        raise RuntimeError("MAIL_TO vacío: configurar el secret/env con los destinatarios.")
     is_test = "--test" in sys.argv
     subject = f"{'[PRUEBA] ' if is_test else ''}Depósitos USD Sector Privado (BCRA) — {last_date:%d/%m/%Y}"
 
