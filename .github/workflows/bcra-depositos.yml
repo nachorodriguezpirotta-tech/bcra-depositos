@@ -13,6 +13,10 @@ on:
         description: "Forzar envío aunque ya se haya enviado hoy"
         type: boolean
         default: false
+      mail_to:
+        description: "Override de destinatarios (coma). Vacío = usar el secret de producción."
+        type: string
+        default: ""
   schedule:
     - cron: "0 15 * * 1"    # 12:00 ART
     - cron: "30 15 * * 1"   # 12:30 ART (respaldo)
@@ -67,5 +71,5 @@ jobs:
           MAIL_OAUTH_REFRESH_TOKEN: ${{ secrets.MAIL_OAUTH_REFRESH_TOKEN }}
           MAIL_OAUTH_CLIENT_ID: ${{ secrets.MAIL_OAUTH_CLIENT_ID }}
           MAIL_OAUTH_CLIENT_SECRET: ${{ secrets.MAIL_OAUTH_CLIENT_SECRET }}
-          MAIL_TO: ${{ secrets.MAIL_TO }}
+          MAIL_TO: ${{ github.event.inputs.mail_to != '' && github.event.inputs.mail_to || secrets.MAIL_TO }}
         run: python3 send_dashboard.py
