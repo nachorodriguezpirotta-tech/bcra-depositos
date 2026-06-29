@@ -1,20 +1,23 @@
 name: bcra-depositos-usd
 
+# Disparo PRINCIPAL: launchd en la Mac de Ignacio hace `gh workflow run` a las
+# 11:56 ART (los runs por workflow_dispatch arrancan en segundos, sin la cola
+# que atrasa horas a los `schedule`). El `schedule` queda solo de RESPALDO por
+# si la Mac está apagada (puede salir más tarde, pero sale). El guard evita
+# duplicados entre ambos.
+
 on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Forzar envío aunque ya se haya enviado hoy"
+        type: boolean
+        default: false
   schedule:
-    # Objetivo: mail PUNTUAL a las 12:00 ART (15:00 UTC) los lunes.
-    # El cron de GHA puede dispararse tarde, así que hay varios intentos con
-    # ventaja desde las 10:30 ART. El primero que arranca ESPERA hasta las
-    # 15:00 UTC exactas y envía. El guard evita duplicados.
-    - cron: "30 13 * * 1"   # 10:30 ART
-    - cron: "45 13 * * 1"   # 10:45 ART
-    - cron: "0 14 * * 1"    # 11:00 ART
-    - cron: "15 14 * * 1"   # 11:15 ART
-    - cron: "30 14 * * 1"   # 11:30 ART
-    - cron: "45 14 * * 1"   # 11:45 ART
-    - cron: "5 15 * * 1"    # 12:05 ART (catch-up si se cayeron los anteriores)
-    - cron: "20 15 * * 1"   # 12:20 ART (catch-up)
-  workflow_dispatch: {}
+    - cron: "0 15 * * 1"    # 12:00 ART
+    - cron: "30 15 * * 1"   # 12:30 ART (respaldo)
+    - cron: "0 16 * * 1"    # 13:00 ART (respaldo)
+    - cron: "0 17 * * 1"    # 14:00 ART (respaldo)
 
 concurrency:
   group: bcra-depositos-weekly
@@ -30,14 +33,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Saltar si otro intento ya envió hoy
-        if: github.event_name == 'schedule'
+      - name: Saltar si ya se envió hoy (evita duplicados)
         env:
           GH_TOKEN: ${{ github.token }}
+          FORCE: ${{ github.event.inputs.force }}
         run: |
+          if [ "$FORCE" = "true" ]; then
+            echo "Envío forzado — no se aplica el guard."
+            exit 0
+          fi
           hoy=$(date -u +%Y-%m-%d)
-          n=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/bcra-depositos.yml/runs?event=schedule&status=success&created=${hoy}..${hoy}" --jq '.workflow_runs | length')
-          echo "Envíos exitosos del cron hoy: $n"
+          n=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?status=success&created=${hoy}..${hoy}" --jq '.workflow_runs | length')
+          echo "Runs exitosos hoy: $n"
           if [ "$n" -gt 0 ]; then
             echo "Ya se envió hoy — este intento se salta."
             echo "SKIP=1" >> "$GITHUB_ENV"
@@ -53,19 +60,6 @@ jobs:
 
       - if: env.SKIP != '1'
         run: python -m playwright install --with-deps chromium
-
-      # Setup ya listo; recién acá se espera al horario exacto (12:00 ART = 15:00 UTC).
-      - name: Esperar hasta las 15:00 UTC (12:00 ART) para salida puntual
-        if: env.SKIP != '1' && github.event_name == 'schedule'
-        run: |
-          target=$(date -u -d "today 15:00" +%s)
-          now=$(date -u +%s)
-          if [ "$now" -lt "$target" ]; then
-            echo "Esperando $((target - now))s hasta las 15:00 UTC (12:00 ART)..."
-            sleep $((target - now))
-          else
-            echo "Ya pasó el horario objetivo — envío inmediato."
-          fi
 
       - name: Generar dashboard y enviar mail
         if: env.SKIP != '1'
