@@ -2,14 +2,18 @@ name: bcra-depositos-usd
 
 on:
   schedule:
-    # Objetivo: mail puntual 13:00 ART (16:00 UTC) los lunes.
-    # El cron de GHA arranca tarde cuando hay congestión (el 08/06 arrancó 2h17
-    # tarde), así que se disparan 3 intentos tempranos y cada uno ESPERA hasta
-    # las 15:57 UTC antes de enviar. El guard evita duplicados: si un intento
-    # ya envió hoy, los demás se saltan.
-    - cron: "7 14 * * 1"
-    - cron: "7 15 * * 1"
-    - cron: "47 15 * * 1"
+    # Objetivo: mail PUNTUAL a las 12:00 ART (15:00 UTC) los lunes.
+    # El cron de GHA puede dispararse tarde, así que hay varios intentos con
+    # ventaja desde las 10:30 ART. El primero que arranca ESPERA hasta las
+    # 15:00 UTC exactas y envía. El guard evita duplicados.
+    - cron: "30 13 * * 1"   # 10:30 ART
+    - cron: "45 13 * * 1"   # 10:45 ART
+    - cron: "0 14 * * 1"    # 11:00 ART
+    - cron: "15 14 * * 1"   # 11:15 ART
+    - cron: "30 14 * * 1"   # 11:30 ART
+    - cron: "45 14 * * 1"   # 11:45 ART
+    - cron: "5 15 * * 1"    # 12:05 ART (catch-up si se cayeron los anteriores)
+    - cron: "20 15 * * 1"   # 12:20 ART (catch-up)
   workflow_dispatch: {}
 
 concurrency:
@@ -50,14 +54,14 @@ jobs:
       - if: env.SKIP != '1'
         run: python -m playwright install --with-deps chromium
 
-      # Todo el setup ya está listo; recién acá se espera al horario exacto.
-      - name: Esperar hasta las 15:57 UTC (12:57 ART) para salida puntual
+      # Setup ya listo; recién acá se espera al horario exacto (12:00 ART = 15:00 UTC).
+      - name: Esperar hasta las 15:00 UTC (12:00 ART) para salida puntual
         if: env.SKIP != '1' && github.event_name == 'schedule'
         run: |
-          target=$(date -u -d "today 15:57" +%s)
+          target=$(date -u -d "today 15:00" +%s)
           now=$(date -u +%s)
           if [ "$now" -lt "$target" ]; then
-            echo "Esperando $((target - now))s hasta las 15:57 UTC..."
+            echo "Esperando $((target - now))s hasta las 15:00 UTC (12:00 ART)..."
             sleep $((target - now))
           else
             echo "Ya pasó el horario objetivo — envío inmediato."
