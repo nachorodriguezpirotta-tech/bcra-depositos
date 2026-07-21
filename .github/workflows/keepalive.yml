@@ -1,0 +1,23 @@
+name: Keepalive (evita el auto-disable de GitHub a los 60 días)
+on:
+  schedule:
+    - cron: '0 9 1,15 * *'
+  workflow_dispatch: {}
+permissions:
+  contents: write
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          git config user.name "keepalive-bot"
+          git config user.email "bot@revolv.local"
+          LAST=$(git log -1 --format=%ct); NOW=$(date +%s)
+          AGE_DAYS=$(( (NOW - LAST) / 86400 ))
+          echo "último commit hace $AGE_DAYS días"
+          if [ "$AGE_DAYS" -ge 40 ]; then
+            date -u +%Y-%m-%dT%H:%M:%SZ > .keepalive
+            git add .keepalive && git commit -m "keepalive [skip ci]" && git push
+          fi
